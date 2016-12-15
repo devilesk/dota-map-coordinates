@@ -1,12 +1,12 @@
 # dota-map-coordinates
 
-Custom game for dumping map entity coordinate data to JSON used in the dota interactive map app.
+Custom game for dumping map entity coordinate data to JSON used in the [dota interactive map](https://github.com/devilesk/dota-interactive-map).
 
 Usage:
 
 Run copymap.bat to get the latest dota map files. Also creates an empty mapdata.txt output file.
 
-Launch the custom game in Workshop Tools
+Launch the custom game in Workshop Tools. Done.
 
 Output path:
 
