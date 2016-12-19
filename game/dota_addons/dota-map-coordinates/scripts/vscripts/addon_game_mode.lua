@@ -143,6 +143,8 @@ function InitElevationData()
                 elevation_data[a][b] = zI
             elseif zF < -0.5 then
                 elevation_data[a][b] = math.floor(z)
+            else
+                elevation_data[a][b] = z
             end
             b = b + 1
         end
