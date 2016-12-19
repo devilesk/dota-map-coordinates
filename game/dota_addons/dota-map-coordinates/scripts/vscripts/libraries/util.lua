@@ -1,9 +1,20 @@
+--VERSION 0.1.0
+
+function round(num, idp)
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 function istable(t)
   return type(t) == "table"
 end
 
 function isnumber(t)
   return type(t) == "number"
+end
+
+function isint(n)
+  return n==math.floor(n)
 end
 
 function isfunction(t)
