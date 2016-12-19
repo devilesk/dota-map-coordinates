@@ -161,7 +161,15 @@ function MapElevations(points, callback)
         local newPoints = FindPoints()
         local newTotalPoints = newPoints:Size()
         print("MapElevations done.", totalPoints, newTotalPoints)
+        
+        -- finish when no fractional elevation points left or remaining has not changed
         if newTotalPoints == 0 or totalPoints == newTotalPoints then
+            -- floor any remaining points
+            for i = 1, gridWidth - 1 do
+                for j = 1, gridHeight - 1 do
+                    elevation_data[i][j] = math.floor(elevation_data[i][j])
+                end
+            end
             callback()
         else
             MapElevations(newPoints, callback)
@@ -174,7 +182,6 @@ function FindPoints()
     for i = 1, gridWidth - 1 do
         for j = 1, gridHeight - 1 do
             local z = elevation_data[i][j]
-            -- not isint(elevation_data[i][j])
             if elevation_data[i][j]~=math.floor(elevation_data[i][j]) then
                 points:Push({x = i, y = j})
             end
@@ -189,20 +196,12 @@ function MapElevationsHelper(points, callback)
             print ("remaining", points:Size())
         end
         local point = points:Pop()
-        --[[FindPointElevation(point.x, point.y, function ()
-            MapElevationsHelper(points, callback)
-        end)]]
-        FindPointElevationHelper(point.x, point.y, GetSurroundingPoints(point.x, point.y), function ()
+        TestPointElevation(point.x, point.y, function ()
             MapElevationsHelper(points, callback)
         end)
     else
         callback()
     end
-end
-
-function FindPointElevation(x, y, callback)
-    local ring = GetSurroundingPoints(x, y)
-    FindPointElevationHelper(x, y, ring, callback)
 end
 
 --[[
@@ -220,7 +219,6 @@ function GetSurroundingPoints(x, y)
     for i = -2, 2, 4 do
         for j = -2, 2, 4 do
             local x2, y2 = x + i, y + j
-            -- IsValidPoint
             if x2 >= 1 and x2 < gridWidth and y2 >= 1 and y2 < gridHeight then
                 ring:Push({x=x2,y=y2})
             end
@@ -229,7 +227,6 @@ function GetSurroundingPoints(x, y)
     for i = -1, 1 do
         for j = -3, 3, 6 do
             local x2, y2 = x + i, y + j
-            -- IsValidPoint
             if x2 >= 1 and x2 < gridWidth and y2 >= 1 and y2 < gridHeight then
                 ring:Push({x=x2,y=y2})
             end
@@ -238,7 +235,6 @@ function GetSurroundingPoints(x, y)
     for j = -1, 1 do
         for i = -3, 3, 6 do
             local x2, y2 = x + i, y + j
-            -- IsValidPoint
             if x2 >= 1 and x2 < gridWidth and y2 >= 1 and y2 < gridHeight then
                 ring:Push({x=x2,y=y2})
             end
@@ -248,81 +244,64 @@ function GetSurroundingPoints(x, y)
     return ring
 end
 
-function IsValidPoint(x, y)
-    return x >= 1 and x < gridWidth and y >= 1 and y < gridHeight
-end
-
-function FindPointElevationHelper(x, y, ring, callback)
-    -- ring:Size() > 0 and not isint(elevation_data[x][y])
+function TestPointElevation(x, y, callback)
+    local ring = GetSurroundingPoints(x, y)
     if ring:Size() > 0 and elevation_data[x][y]~=math.floor(elevation_data[x][y]) then
-        local pt1, pt2 = {x=x, y=y}, ring:Pop()
-        TestVision(pt1, pt2, function (r1, r2)
-            --ProcessResult(pt1, pt2, r1, r2)
-            local z1, z2 = elevation_data[pt1.x][pt1.y], elevation_data[pt2.x][pt2.y]
-            if z1 < z2 then
-                ProcessResultHelper(pt1, pt2, z1, z2, r1, r2)
-            else
-                ProcessResultHelper(pt2, pt1, z2, z1, r2, r1)
+        local pt1 = {x=x, y=y}
+        ward1 = CreateUnitByName("npc_dota_observer_wards", Vector((pt1.x - 1) * 64 + worldMinX, (pt1.y - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
+        ring:Each(function (pt2)
+            pt2.ward = CreateUnitByName("npc_dota_observer_wards", Vector((pt2.x - 1) * 64 + worldMinX, (pt2.y - 1) * 64 + worldMinY, 0), false, nil, nil, 3)
+        end)
+        Timers:CreateTimer(function ()
+            local f
+            for k, pt2 in pairs(ring:Items()) do
+                local z1, z2 = elevation_data[pt1.x][pt1.y], elevation_data[pt2.x][pt2.y]
+                --if z1==math.floor(z1) then break end
+                if z1 <= z2 then
+                    f = ProcessResultHelper(pt1, pt2, z1, z2, ward1:CanEntityBeSeenByMyTeam(pt2.ward))
+                end
             end
-            
-            FindPointElevationHelper(x, y, ring, callback)
+            if f ~= nil then
+                elevation_data[pt1.x][pt1.y] = f(elevation_data[pt1.x][pt1.y])
+            end
+            ring:Each(function (pt2)
+                pt2.ward:RemoveSelf()
+            end)
+            ward1:RemoveSelf()
+            callback()
+            return nil
         end)
     else
         callback()
     end
 end
 
-function ProcessResult(pt1, pt2, r1, r2)
-    local z1, z2 = elevation_data[pt1.x][pt1.y], elevation_data[pt2.x][pt2.y]
-    if z1 < z2 then
-        ProcessResultHelper(pt1, pt2, z1, z2, r1, r2)
-    else
-        ProcessResultHelper(pt2, pt1, z2, z1, r2, r1)
-    end
-end
-
 -- zA always <= zB
-function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB, ptBSeesA)
+function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB)
     -- A and B are in same elevation range
     if math.floor(zA) == math.floor(zB) then
         -- A does not see B
         if not ptASeesB then
             -- zA goes down, zB goes up
-            elevation_data[ptA.x][ptA.y] = math.floor(zA)
-            elevation_data[ptB.x][ptB.y] = math.ceil(zB) -- zB already be int, in which case this does nothing
+            --elevation_data[ptA.x][ptA.y] = math.floor(zA)
+            elevation_data[ptB.x][ptB.y] = math.ceil(zB)
+            return math.floor
         end
     -- B is one elevation above A
     elseif math.floor(zB) - math.floor(zA) == 1 then
         -- A sees B
         if ptASeesB Then
             -- zA goes up, zB goes down
-            elevation_data[ptA.x][ptA.y] = math.ceil(zA)
-            elevation_data[ptB.x][ptB.y] = math.floor(zB) -- zB already be int, in which case this does nothing
+            --elevation_data[ptA.x][ptA.y] = math.ceil(zA)
+            elevation_data[ptB.x][ptB.y] = math.floor(zB)
+            return math.ceil
         -- A does not see B and isint(zB)
         elseif zB==math.floor(zB)
             -- zA goes down
-            elevation_data[ptA.x][ptA.y] = math.floor(zA)
+            --elevation_data[ptA.x][ptA.y] = math.floor(zA)
+            return math.floor
         end
     end
-end
-
--- creates two wards and in next frame executes callback with result of whether they have vision of each other
-function TestVision(pt1, pt2, callback)
-    -- CreateWard, XYtoWorldXY
-    local ward1 = CreateUnitByName("npc_dota_observer_wards", Vector((pt1.x - 1) * 64 + worldMinX, (pt1.y - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
-    local ward2 = CreateUnitByName("npc_dota_observer_wards", Vector((pt2.x - 1) * 64 + worldMinX, (pt2.y - 1) * 64 + worldMinY, 0), false, nil, nil, 3)
-    -- use timer that executes in next frame to give chance for vision to update
-    Timers:CreateTimer(function ()
-        local r1, r2 = ward1:CanEntityBeSeenByMyTeam(ward2), ward2:CanEntityBeSeenByMyTeam(ward1)
-        ward1:RemoveSelf()
-        ward2:RemoveSelf()
-        callback(r1, r2)
-        return nil
-    end)
-end
-
-function CreateWard(x, y, team)
-    return CreateUnitByName("npc_dota_observer_wards", XYtoWorldXY(x, y), false, nil, nil, team)
 end
 
 function SetNoVision()
@@ -365,70 +344,5 @@ function GameMode:OnGameRulesStateChange()
         MapElevations(nil, function ()
             AppendToLogFile("elevationdata.json", json.encode(elevation_data))
         end)
-        
-        --ElevationData()
-        --[[Timers:CreateTimer(1, function ()
-            local hero = PlayerResource:GetSelectedHeroEntity(0)
-            hero:SetDayTimeVisionRange(100)
-            hero:SetNightTimeVisionRange(100)
-            if hero ~= nil then
-                print (hero:GetOrigin())
-                print (GetGroundHeight(hero:GetOrigin(), nil))
-            end
-            
-            return 1
-        end)]]
-                
-        --[[local e = Entities:First()
-        while e ~= nil do
-            if e:GetName() ~= "" then
-                print (e:GetClassname())
-            end
-            e = Entities:Next(e)
-        end]]
     end
 end
-
---[[function ElevationData()
-    local worldMaxX = GetWorldMaxX()
-    local worldMaxY = GetWorldMaxY()
-    local worldMinX = GetWorldMinX()
-    local worldMinY = GetWorldMinY()
-    local gridSize = 64
-    
-    print (worldMaxX)
-    print (worldMaxY)
-    print (worldMinX)
-    print (worldMinY)
-    
-    local a = 0
-    local b = 0
-    local points = {}
-    for i = worldMinX , worldMaxX - gridSize, gridSize do
-        b = 0
-        for j = worldMinY , worldMaxY - gridSize, gridSize do
-            --print(a, b, i + 32, j + 32, GetGroundHeight(Vector(i + 32, j + 32, 0), nil))
-            table.insert(points, {
-                x = a,
-                y = b,
-                worldX = i + 32,
-                worldY = j + 32,
-                worldZ = GetGroundHeight(Vector(i + 32, j + 32, 0), nil)
-            })
-            b = b + 1
-        end
-        a = a + 1
-    end
-    --print (a, b)
-    local data = {
-        worldMaxX = worldMaxX,
-        worldMaxY = worldMaxY,
-        worldMinX = worldMinX,
-        worldMinY = worldMinY,
-        width = a,
-        height = b,
-        points = points
-    }
-    
-    AppendToLogFile("elevationdata.json", json.encode(data))
-end]]
