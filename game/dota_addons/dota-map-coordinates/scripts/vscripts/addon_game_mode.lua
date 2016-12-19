@@ -132,15 +132,16 @@ function InitElevationData()
     worldMinX = GetWorldMinX()
     worldMinY = GetWorldMinY()
     local a = 1
+    local b = 1
     for i = worldMinX , worldMaxX - gridSize, gridSize do
-        local b = 1
+        b = 1
         elevation_data[a] = {}
         for j = worldMinY , worldMaxY - gridSize, gridSize do
             local z = GetGroundHeight(Vector(i, j, 0), nil) / 128
             local zI, zF = math.modf(z)
             if zF >= 0 and zF <= 0.5 then
                 elevation_data[a][b] = zI
-            elseif zF < -0.5
+            elseif zF < -0.5 then
                 elevation_data[a][b] = math.floor(z)
             end
             b = b + 1
@@ -290,13 +291,13 @@ function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB)
     -- B is one elevation above A
     elseif math.floor(zB) - math.floor(zA) == 1 then
         -- A sees B
-        if ptASeesB Then
+        if ptASeesB then
             -- zA goes up, zB goes down
             --elevation_data[ptA.x][ptA.y] = math.ceil(zA)
             elevation_data[ptB.x][ptB.y] = math.floor(zB)
             return math.ceil
         -- A does not see B and isint(zB)
-        elseif zB==math.floor(zB)
+        elseif zB==math.floor(zB) then
             -- zA goes down
             --elevation_data[ptA.x][ptA.y] = math.floor(zA)
             return math.floor
