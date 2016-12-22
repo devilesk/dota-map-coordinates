@@ -1,0 +1,2 @@
+"C:\Program Files (x86)\Steam\steamapps\common\dota 2 beta\game\bin\win64\dmxconvert.exe" -i "content\dota_addons\dota-map-coordinates\maps\prefabs\dota_pvp_prefab.vmap" -o "data\dota_pvp_prefab.vmap.txt" -oe keyvalues2
+"C:\Program Files (x86)\Steam\steamapps\common\dota 2 beta\game\bin\win64\dmxconvert.exe" -i "content\dota_addons\dota-map-coordinates\maps\prefabs\dota_custom_default_000.vmap" -o "data\dota_custom_default_000.vmap.txt" -oe keyvalues2

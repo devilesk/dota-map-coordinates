@@ -61,16 +61,36 @@ function DumpCoordinateData(keys, schema, out)
         end
     end
     
-    --PrintTable(data)
-    --PrintTable(json)
-    
     for k, v in pairs(schema) do
         print (k .. v)
         data[v] = data[k]
         data[k] = nil
     end
-    AppendToLogFile(out, json.encode(data))
-    --print (json.encode(data))
+    AppendToLogFile(out, json.encode({data = data}))
+end
+
+function GenerateMapData(out)
+    DumpCoordinateData(
+        {
+            "trigger_multiple",
+            "npc_dota_tower",
+            "npc_dota_healer",
+            "npc_dota_roshan_spawner",
+            "dota_item_rune_spawner_powerup",
+            "dota_item_rune_spawner_bounty",
+            "ent_dota_shop",
+            "ent_dota_tree",
+            "npc_dota_barracks",
+            "npc_dota_filler",
+            "npc_dota_fort",
+            "npc_dota_tower"
+        },
+        {
+            dota_item_rune_spawner_powerup = "dota_item_rune_spawner",
+            npc_dota_filler = "npc_dota_building",
+        },
+        out
+    )
 end
 
 function DestroyBuildings()
@@ -117,10 +137,10 @@ function InitElevationData()
     
     local a = 1
     local b = 1
-    for i = worldMinX , worldMaxX - gridSize, gridSize do
+    for i = worldMinX , worldMaxX, gridSize do
         b = 1
         elevation_data[a] = {}
-        for j = worldMinY , worldMaxY - gridSize, gridSize do
+        for j = worldMinY , worldMaxY, gridSize do
             local z = GetGroundHeight(Vector(i, j, 0), nil) / 128
             local zI, zF = math.modf(z)
             if zF >= 0 and zF <= 0.5 then
@@ -303,23 +323,24 @@ function SetNoVision()
     end
 end
 
-function TestGridNav()
+function TestGridNav(out)
     local points = {}
     for i = 1, gridWidth - 1 do
         for j = 1, gridHeight - 1 do
             --local z = GetGroundHeight(Vector(i, j, 0), nil)
-            local bIsTraversable = GridNav:IsTraversable(XYtoWorldXY(i, j))
+            local pos = XYtoWorldXY(i, j)
+            local bIsTraversable = GridNav:IsTraversable(pos)
             print (i, j, bIsTraversable)
             if not bIsTraversable then
-                table.insert(points, {x = i, y = j})
+                table.insert(points, {x = pos.x, y = pos.y})
             end
         end
     end
-    AppendToLogFile("gridnavdata.json", json.encode({data = points}))
+    AppendToLogFile(out, json.encode({data = points}))
     return points
 end
 
-function TestWardPlace()
+--[[function TestWardPlace()
     local ward
     local player = PlayerResource:GetPlayer(0)
     if player ~= nil then
@@ -332,7 +353,7 @@ function TestWardPlace()
             --FindClearSpaceForUnit(ward, Vector(-2315, 1759, 0), true)
             FindClearSpaceForUnit(ward, Vector(-200, 0, 0), true)
         end
-    end
+    end]]
 --[[
     local points = List()
     for i = 1, gridWidth - 1 do
@@ -365,10 +386,9 @@ function TestWardPlace()
             return nil
         end
     end)
-]]
-end
+end]]
 
-function TreeElevations()
+--[[function TreeElevations()
     local data = {}
     local entities = Entities:FindAllByClassname("ent_dota_tree")
     for k, ent in pairs(entities) do
@@ -376,9 +396,10 @@ function TreeElevations()
         table.insert(data, {x = ent:GetOrigin().x, y = ent:GetOrigin().y, z = ent:GetOrigin().z})
     end
     AppendToLogFile("treeelevationdata.json", json.encode({data = data}))
-end
+end]]
 
 function GameMode:InitGameMode()
+    GenerateMapData("mapdata.json")
     GameRules:SetTreeRegrowTime(99999999)
     GameRules:SetPreGameTime(3)
     ListenToGameEvent("game_rules_state_change", Dynamic_Wrap(GameMode, "OnGameRulesStateChange"), self)
@@ -396,45 +417,35 @@ end
 function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
-    
-        print ("worldMinX", GetWorldMinX())
-        print ("worldMinY", GetWorldMinY())
-        --TreeElevations()
+        world_data = {
+            worldMaxX = GetWorldMaxX(),
+            worldMaxY = GetWorldMaxY(),
+            worldMinX = GetWorldMinX(),
+            worldMinY = GetWorldMinY()
+        }
+        AppendToLogFile("worlddata.json", json.encode(world_data))
         
+        GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
         DestroyBuildings()
-        
-        --SetNoVision()
-        
+        SetNoVision()
         InitElevationData()
+        TestGridNav("gridnavdata.json")
+        
+        Timers:CreateTimer(1, function ()
+            MapElevations(nil, function ()
+                AppendToLogFile("elevationdata.json", json.encode(elevation_data))
+            end)
+            return nil
+        end)
+        
+
+        
         --ward = CreateUnitByName("npc_dota_observer_wards", Vector(0, 0, 0), true, nil, nil, 2)
         --TestWardPlace()
-        --TestGridNav()
         
-        --[[MapElevations(nil, function ()
-            AppendToLogFile("elevationdata.json", json.encode(elevation_data))
-        end)]]
+        --[[]]
         
-        --[[DumpCoordinateData(
-            {
-                "trigger_multiple",
-                "npc_dota_tower",
-                "npc_dota_healer",
-                "npc_dota_roshan_spawner",
-                "dota_item_rune_spawner_powerup",
-                "dota_item_rune_spawner_bounty",
-                "ent_dota_shop",
-                "ent_dota_tree",
-                "npc_dota_barracks",
-                "npc_dota_filler",
-                "npc_dota_fort",
-                "npc_dota_tower"
-            },
-            {
-                dota_item_rune_spawner_powerup = "dota_item_rune_spawner",
-                npc_dota_filler = "npc_dota_building",
-            },
-            "mapdata.json"
-        )]]
+
         
         --[[local e = Entities:First()
         while e ~= nil and e:GetClassname() ~= "ent_dota_tree" do
