@@ -1,0 +1,9 @@
+dota_custom_default_999.vmap.txt
+        "classname" "string" "ent_fow_blocker_node"
+		"targetname" "string" "fow_blocker_roshan"
+        
+        materials/tools/toolsskip.vmat
+        
+dota_pvp_prefab.vmap.txt
+		"materials/tools/tools_no_wards.vmat",
+		"materials/tools/toolswardsonly.vmat",

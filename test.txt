@@ -1,0 +1,76 @@
+<!-- dmx encoding keyvalues2 4 format vmap 22 -->
+"CMapEntity"
+{
+	"id" "elementid" "159f0429-ba63-4cba-9e9c-53413b36852c"
+	"origin" "vector3" "-2738 1937.9998779297 87.6116638184"
+	"angles" "qangle" "-19.2134819031 327.6262207031 -10.6697216034"
+	"scales" "vector3" "0.7599999905 0.7599999905 0.7600000501"
+	"nodeID" "int" "4093"
+	"referenceID" "uint64" "0xf56014ad3e122737"
+	"children" "element_array" 
+	[
+	]
+	"editorOnly" "bool" "0"
+	"force_hidden" "bool" "0"
+	"variableTargetKeys" "string_array" 
+	[
+		"model",
+		"rendercolor"
+	]
+	"variableNames" "string_array" 
+	[
+		"cliffrocks006_dire_model",
+		"roshan_stones_color"
+	]
+	"relayPlugData" "DmePlugList"
+	{
+		"id" "elementid" "0cfbb408-f7d7-4c4f-af9d-fe3fe5b2e962"
+		"names" "string_array" 
+		[
+		]
+		"dataTypes" "int_array" 
+		[
+		]
+		"plugTypes" "int_array" 
+		[
+		]
+		"descriptions" "string_array" 
+		[
+		]
+	}
+	
+	"connectionsData" "element_array" 
+	[
+	]
+	"entity_properties" "EditGameClassProps"
+	{
+		"id" "elementid" "dfdd06fb-c104-455f-b5a0-08bcc193ab23"
+		"classname" "string" "prop_static"
+		"precomputelightprobes" "string" "1"
+		"lightingorigin" "string" ""
+		"model" "string" "models/props_nature/cliff_wall006.vmdl"
+		"solid" "string" "0"
+		"disableshadows" "string" "0"
+		"screenspacefade" "string" "0"
+		"skin" "string" "0"
+		"fademindist" "string" "-1"
+		"fademaxdist" "string" "0"
+		"fadescale" "string" "1"
+		"detailgeometry" "string" "0"
+		"baketoworld" "string" "0"
+		"renderamt" "string" "64"
+		"rendercolor" "string" "44 58 48 255"
+		"cubemap" "string" ""
+		"materialoverride" "string" ""
+		"disableinlowquality" "string" "Do not render this prop when using the lowest quality video settings, it is an non-essential detail."
+		"grass_exclusion_radius" "string" "0"
+		"ignorenormals" "string" "0"
+		"disablevertexlighting" "string" "1"
+		"disableselfshadowing" "string" "1"
+		"bakelightoutput" "string" "-1"
+		"lightgroup" "string" ""
+	}
+	
+	"hitNormal" "vector3" "0 0 1"
+	"isProceduralEntity" "bool" "0"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "dota-map-coordinates",
+  "version": "0.1.0",
+  "description": "Custom game for dumping map entity coordinate data to JSON used in the [dota interactive map](https://github.com/devilesk/dota-interactive-map).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devilesk/dota-map-coordinates.git"
+  },
+  "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devilesk/dota-map-coordinates/issues"
+  },
+  "homepage": "https://github.com/devilesk/dota-map-coordinates#readme",
+  "devDependencies": {
+    "jison": "^0.4.17"
+  }
+}
