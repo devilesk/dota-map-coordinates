@@ -1,6 +1,6 @@
 # dota-map-coordinates
 
-Custom game for dumping map entity coordinate data to JSON and scripts for generating elevation and vision related images. See [dota interactive map](https://github.com/devilesk/dota-interactive-map) for an application of the data.
+Custom game for dumping map entity coordinate data to JSON and scripts for generating elevation and vision related images. See [dota vision simulation](https://github.com/devilesk/dota-vision-simulation) and [dota interactive map](https://github.com/devilesk/dota-interactive-map) for an application of the data.
 
 Usage:
 
