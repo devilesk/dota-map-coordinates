@@ -44,3 +44,5 @@ Run `process_data.py` to generate json and images based on the data. The followi
 * `ent_fow_blocker_node.png` - Generated from text versions of map prefab files, dota_pvp_prefab.vmap and dota_custom_default_000.vmap.
 
 ![ent_fow_blocker_node.png](img/ent_fow_blocker_node.png?raw=true)
+
+* `map_data.png` - All the above images stitched together horizontally into one image.

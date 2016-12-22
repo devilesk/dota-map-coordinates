@@ -173,6 +173,22 @@ def generate_tools_no_wards_image(src, dst):
                     pixels[x, y] = (0, 0, 0)
         image.save(dst)
 
+def stitch_images(files, dst):
+    images = map(Image.open, files)
+    widths, heights = zip(*(i.size for i in images))
+
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    new_im = Image.new('RGB', (total_width, max_height))
+
+    x_offset = 0
+    for im in images:
+      new_im.paste(im, (x_offset,0))
+      x_offset += im.size[0]
+
+    new_im.save(dst)
+
 worldMinX, worldMinY, \
 worldMaxX, worldMaxY, \
 worldWidth, worldHeight, \
@@ -185,3 +201,4 @@ generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
 parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
 generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
 generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
+stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
