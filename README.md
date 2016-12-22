@@ -29,10 +29,14 @@ Run `textvmap.bat` to generate the vmap.txt files using dmxconvert. Text vmaps c
 
 Run `process_data.py` to generate json and images based on the data. The following images are created:
 
-* `gridnav.png` - Generated from gridnavdata.json. ![gridnav.png](img/gridnav.png?raw=true)
+* `gridnav.png` - Generated from gridnavdata.json.
+![gridnav.png](img/gridnav.png?raw=true)
 
-* `elevation.png` - Generated from elevationdata.json. ![elevation.png](img/elevation.png?raw=true)
+* `elevation.png` - Generated from elevationdata.json.
+![elevation.png](img/elevation.png?raw=true)
 
-* `tree_elevation.png` - Generated from mapdata.json. ![tree_elevation.png](img/tree_elevation.png?raw=true)
+* `tree_elevation.png` - Generated from mapdata.json.
+![tree_elevation.png](img/tree_elevation.png?raw=true)
 
-* `ent_fow_blocker_node.png` - Generated from text versions of map prefab files, dota_pvp_prefab.vmap and dota_custom_default_000.vmap. ![ent_fow_blocker_node.png](img/ent_fow_blocker_node.png?raw=true)
+* `ent_fow_blocker_node.png` - Generated from text versions of map prefab files, dota_pvp_prefab.vmap and dota_custom_default_000.vmap.
+![ent_fow_blocker_node.png](img/ent_fow_blocker_node.png?raw=true)
