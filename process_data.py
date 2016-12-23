@@ -150,32 +150,32 @@ def generate_tools_no_wards_data(parser_src, prefab_src, dst):
     with open(dst, 'w') as f:
         f.write(json.dumps({"data": tools_no_wards_data}, indent=1, sort_keys=True))
 
+def any_contains_point(data, point):
+    for points in data:
+        if contains_point(points, point):
+            return True
+    return False
+
+def any_intersects_point(data, point):
+    for points in data:
+        if intersects_point(points, point):
+            return True
+    return False
+
+def intersects_point(points, point):
+    bbPath = mplPath.Path(np.array(points))
+    tile_points = [[point[0] - 32, point[1] - 32],
+                   [point[0] - 32, point[1] + 32],
+                   [point[0] + 32, point[1] + 32],
+                   [point[0] + 32, point[1] - 32]]
+    bbPath2 = mplPath.Path(np.array(tile_points))
+    return bbPath.intersects_path(bbPath2)
+
+def contains_point(points, point):
+    bbPath = mplPath.Path(np.array(points))
+    return bbPath.contains_point(point)
+
 def generate_tools_no_wards_image(src, dst):
-
-    def any_contains_point(data, point):
-        for points in data:
-            if contains_point(points, point):
-                return True
-        return False
-
-    def any_intersects_point(data, point):
-        for points in data:
-            if intersects_point(points, point):
-                return True
-        return False
-
-    def intersects_point(points, point):
-        bbPath = mplPath.Path(np.array(points))
-        tile_points = [[point[0] - 32, point[1] - 32],
-                       [point[0] - 32, point[1] + 32],
-                       [point[0] + 32, point[1] + 32],
-                       [point[0] + 32, point[1] - 32]]
-        bbPath2 = mplPath.Path(np.array(tile_points))
-        return bbPath.intersects_path(bbPath2)
-    
-    def contains_point(points, point):
-        bbPath = mplPath.Path(np.array(points))
-        return bbPath.contains_point(point)
     
     with open(src, 'r') as f:
         data = json.loads(f.read())['data']
@@ -215,6 +215,9 @@ gridWidth, gridHeight = load_world_data("data/worlddata.json")
 #generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
 #generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
 #parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
-generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
-generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
+#generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
+#generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
 #stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
+
+#parse_tools_no_wards_prefab("data/dire_basic.vmap.txt", "data/dire_basic_tools_no_wards.txt")
+generate_tools_no_wards_data("keyvalues2.js", "data/dire_basic_tools_no_wards.txt", "data/dire_basic_tools_no_wards.json")

@@ -399,7 +399,7 @@ end]]
 end]]
 
 function GameMode:InitGameMode()
-    GenerateMapData("mapdata.json")
+    --GenerateMapData("mapdata.json")
     GameRules:SetTreeRegrowTime(99999999)
     GameRules:SetPreGameTime(3)
     ListenToGameEvent("game_rules_state_change", Dynamic_Wrap(GameMode, "OnGameRulesStateChange"), self)
@@ -417,18 +417,18 @@ end
 function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
-        world_data = {
+        --[[world_data = {
             worldMaxX = GetWorldMaxX(),
             worldMaxY = GetWorldMaxY(),
             worldMinX = GetWorldMinX(),
             worldMinY = GetWorldMinY()
         }
-        AppendToLogFile("worlddata.json", json.encode(world_data))
+        AppendToLogFile("worlddata.json", json.encode(world_data))]]
         
-        GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
+        --GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
         DestroyBuildings()
         SetNoVision()
-        InitElevationData()
+        --[[InitElevationData()
         TestGridNav("gridnavdata.json")
         
         Timers:CreateTimer(1, function ()
@@ -436,7 +436,7 @@ function GameMode:OnGameRulesStateChange()
                 AppendToLogFile("elevationdata.json", json.encode(elevation_data))
             end)
             return nil
-        end)
+        end)]]
         
 
         

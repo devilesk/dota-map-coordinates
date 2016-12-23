@@ -27,3 +27,4 @@ game/dota_addons/sandbox/resource/overviews/*
 maps/
 node_modules/
 *.pyc
+*.vmap.txt
