@@ -157,6 +157,23 @@ def any_contains_point(data, point):
             return True
     return False
 
+def any_contains_corner(data, point):
+    tile_points = [[point[0] - 32, point[1] - 32],
+                   [point[0] - 32, point[1] + 32],
+                   [point[0] + 32, point[1] + 32],
+                   [point[0] + 32, point[1] - 32]]
+    r = 4
+    for points in data:
+        for corner in tile_points:
+            corner_points = [[corner[0] - r, corner[1] - r],
+                   [corner[0] - r, corner[1] + r],
+                   [corner[0] + r, corner[1] + r],
+                   [corner[0] + r, corner[1] - r]]
+            for c in corner_points:
+                if contains_point(points, c):
+                    return True
+    return False
+
 def any_intersects_point(data, point):
     for points in data:
         if intersects_point(points, point):
@@ -186,7 +203,7 @@ def generate_tools_no_wards_image(src, dst, image=None):
         for gX in range(0, gridWidth):
             for gY in range(0, gridHeight):
                 wX, wY = grid_to_world(gX, gY)
-                if any_intersects_point(data, [wX, wY]):
+                if any_contains_corner(data, [wX, wY]):
                     x, y = grid_to_image(gX, gY)
                     pixels[x, y] = (0, 0, 0)
         image.save(dst)
