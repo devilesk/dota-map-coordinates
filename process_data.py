@@ -157,6 +157,21 @@ def generate_tools_no_wards_image(src, dst):
             if contains_point(points, point):
                 return True
         return False
+
+    def any_intersects_point(data, point):
+        for points in data:
+            if intersects_point(points, point):
+                return True
+        return False
+
+    def intersects_point(points, point):
+        bbPath = mplPath.Path(np.array(points))
+        tile_points = [[point[0] - 32, point[1] - 32],
+                       [point[0] - 32, point[1] + 32],
+                       [point[0] + 32, point[1] + 32],
+                       [point[0] + 32, point[1] - 32]]
+        bbPath2 = mplPath.Path(np.array(tile_points))
+        return bbPath.intersects_path(bbPath2)
     
     def contains_point(points, point):
         bbPath = mplPath.Path(np.array(points))
@@ -169,7 +184,7 @@ def generate_tools_no_wards_image(src, dst):
         for gX in range(0, gridWidth):
             for gY in range(0, gridHeight):
                 wX, wY = grid_to_world(gX, gY)
-                if any_contains_point(data, [wX, wY]):
+                if any_intersects_point(data, [wX, wY]):
                     x, y = grid_to_image(gX, gY)
                     pixels[x, y] = (0, 0, 0)
         image.save(dst)
