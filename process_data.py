@@ -24,11 +24,12 @@ def load_world_data(src):
                gridWidth, gridHeight
 
 def world_to_grid(wX, wY, bRound=True):
-    x = (wX - worldMinX) / 64
-    y = (wY - worldMinY) / 64
+    x = (wX - worldMinX) / float(64)
+    y = (wY - worldMinY) / float(64)
     if bRound:
-        x = int(round(x))
-        y = int(round(y))
+        rx = int(round(x))
+        ry = int(round(y))
+        return rx, ry
     return x, y
 
 def grid_to_world(gX, gY):
