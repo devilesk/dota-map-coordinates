@@ -133,7 +133,7 @@ def generate_tools_no_wards_data(parser_src, prefab_src, dst):
         vertices = mesh['meshData']['values']['vertexData']['values']['streams']['values'][0]['data']['values']
         points = []
         for vertex in vertices:
-            point = [int(round(x)) for x in map(add, vertex, origin)][:2]
+            point = [x for x in map(add, vertex, origin)][:2]
             points.append(tuple(point))
         points = convex_hull(list(set(points)))
         return points
@@ -210,11 +210,11 @@ worldMaxX, worldMaxY, \
 worldWidth, worldHeight, \
 gridWidth, gridHeight = load_world_data("data/worlddata.json")
 
-generate_gridnav_image("data/gridnavdata.json", "img/gridnav.png")
-generate_elevation_image("data/elevationdata.json", "img/elevation.png")
-generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
-generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
-parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
+#generate_gridnav_image("data/gridnavdata.json", "img/gridnav.png")
+#generate_elevation_image("data/elevationdata.json", "img/elevation.png")
+#generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
+#generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
+#parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
 generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
 generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
-stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
+#stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
