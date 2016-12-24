@@ -9,5 +9,4 @@ function SetCamera() {
   GameUI.SetCameraLookAtPositionHeightOffset(1500);
   $.Schedule(1, SetCamera);
 }
-$.Msg("test");
 $.Schedule(1, SetCamera);

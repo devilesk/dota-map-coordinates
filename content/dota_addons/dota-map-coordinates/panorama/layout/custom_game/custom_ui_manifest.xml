@@ -1,8 +1,8 @@
 <root>
-  <scripts>
-    <include src="file://{resources}/scripts/custom_game/hud_bound.js" />
-  </scripts>
-	<Panel>
-  </Panel>
+    <scripts>
+        <include src="file://{resources}/scripts/custom_game/main.js" />
+    </scripts>
+    <Panel>
+        <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/hud.xml" />
+    </Panel>
 </root>
-

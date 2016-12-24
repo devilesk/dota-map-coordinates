@@ -1,0 +1,33 @@
+<root>
+    <styles>
+        <include src="file://{resources}/styles/dotastyles.css" />
+        <include src="file://{resources}/styles/custom_game/hud.css" />
+    </styles>
+    <scripts>
+        <include src="file://{resources}/scripts/custom_game/hud.js" />
+    </scripts>
+    <Panel class="container" hittest="false" tabindex="auto">
+        <Panel class="row">
+            <Label text="X" hittest="false" />
+            <TextEntry id="x-input" maxchars="6" placeholder="X" oninputsubmit="OnSubmit()" tabindex="auto"/>
+        </Panel>
+        <Panel class="row">
+            <Label text="Y" hittest="false" />
+            <TextEntry id="y-input" maxchars="6" placeholder="Y" oninputsubmit="OnSubmit()" tabindex="auto"/>
+        </Panel>
+        <Panel class="row">
+            <Label text="D" hittest="false" />
+            <TextEntry id="delay-input" maxchars="6" placeholder="Delay" oninputsubmit="OnSubmit()" tabindex="auto"/>
+        </Panel>
+        <Panel class="row">
+            <Button id="submit-button" class="button" onactivate="OnSubmit()" tabindex="auto">
+                <Label text="Submit" hittest="false" />
+            </Button>
+        </Panel>
+        <Panel class="row">
+            <Button id="clear-button" class="button" onactivate="OnClear()" tabindex="auto">
+                <Label text="Clear" hittest="false" />
+            </Button>
+        </Panel>
+    </Panel>
+</root>
