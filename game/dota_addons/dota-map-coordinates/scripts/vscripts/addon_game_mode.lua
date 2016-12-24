@@ -111,7 +111,6 @@ function DestroyBuildings()
     end
 end
 
-local elevation_data = {}
 local worldMaxX
 local worldMaxY
 local worldMinX
@@ -119,6 +118,23 @@ local worldMinY
 local gridSize = 64
 local gridWidth = 1
 local gridHeight = 1
+local tx = 129
+local ty = 127
+local DEBUG = false
+
+local TEAM_INDEX = 1
+local TEAMS = {
+    DOTA_TEAM_GOODGUYS,
+    DOTA_TEAM_BADGUYS,
+    DOTA_TEAM_CUSTOM_1,
+    DOTA_TEAM_CUSTOM_2,
+    DOTA_TEAM_CUSTOM_3,
+    DOTA_TEAM_CUSTOM_4,
+    DOTA_TEAM_CUSTOM_5,
+    DOTA_TEAM_CUSTOM_6,
+    DOTA_TEAM_CUSTOM_7,
+    DOTA_TEAM_CUSTOM_8
+}
 
 function XYtoWorldXY(x, y)
     local worldX, worldY = (x - 1) * 64 + worldMinX, (y - 1) * 64 + worldMinY
@@ -129,27 +145,16 @@ function WorldXYtoXY(worldXYVector)
     return (worldXYVector.x - worldMinX) / 64 + 1, (worldXYVector.y - worldMinY) / 64 + 1
 end
 
-function InitElevationData()
+function InitWorldData()
     worldMaxX = GetWorldMaxX()
     worldMaxY = GetWorldMaxY()
     worldMinX = GetWorldMinX()
     worldMinY = GetWorldMinY()
-    
     local a = 1
     local b = 1
     for i = worldMinX , worldMaxX, gridSize do
         b = 1
-        elevation_data[a] = {}
         for j = worldMinY , worldMaxY, gridSize do
-            local z = GetGroundHeight(Vector(i, j, 0), nil) / 128
-            local zI, zF = math.modf(z)
-            if zF >= 0 and zF <= 0.5 then
-                elevation_data[a][b] = zI
-            elseif zF < -0.5 then
-                elevation_data[a][b] = math.floor(z)
-            else
-                elevation_data[a][b] = z
-            end
             b = b + 1
         end
         a = a + 1
@@ -158,14 +163,34 @@ function InitElevationData()
     gridHeight = b
 end
 
-function MapElevations(points, callback)
+function GetElevationData(threshold)
+    local data = {}
+    threshold = threshold or 0
+    for i = 1, gridWidth - 1 do
+        data[i] = {}
+        for j = 1, gridHeight - 1 do
+            local z = GetGroundHeight(XYtoWorldXY(i, j), nil) / 128
+            local zI, zF = math.modf(z)
+            if zF >= 0 and zF <= threshold then
+                data[i][j] = zI
+            elseif zF < -threshold then
+                data[i][j] = math.floor(z)
+            else
+                data[i][j] = z
+            end
+        end
+    end
+    return data
+end
+
+function MapElevations(elevation_data, points, callback)
     if points == nil then
-        points = FindPoints()
+        points = FindPoints(elevation_data)
     end
     local totalPoints = points:Size()
     print ("MapElevations start. Total points to process:", totalPoints)
-    MapElevationsHelper(points, function ()
-        local newPoints = FindPoints()
+    MapElevationsHelper(elevation_data, points, function ()
+        local newPoints = FindPoints(elevation_data, true)
         local newTotalPoints = newPoints:Size()
         print("MapElevations done.", totalPoints, newTotalPoints)
         
@@ -175,21 +200,28 @@ function MapElevations(points, callback)
             for i = 1, gridWidth - 1 do
                 for j = 1, gridHeight - 1 do
                     elevation_data[i][j] = math.floor(elevation_data[i][j])
+                    --[[local zI, zF = math.modf(elevation_data[i][j])
+                    if zF > 0 then
+                        elevation_data[i][j] = 255
+                    end]]
                 end
             end
             callback()
         else
-            MapElevations(newPoints, callback)
+            MapElevations(elevation_data, newPoints, callback)
         end
     end)
 end
 
-function FindPoints()
+function FindPoints(elevation_data, skip_floored)
     local points = List()
     for i = 1, gridWidth - 1 do
         for j = 1, gridHeight - 1 do
-            local z = elevation_data[i][j]
-            if elevation_data[i][j]~=math.floor(elevation_data[i][j]) then
+            if skip_floored then
+                if elevation_data[i][j]~=math.floor(elevation_data[i][j]) then
+                    points:Push({x = i, y = j})
+                end
+            else
                 points:Push({x = i, y = j})
             end
         end
@@ -197,14 +229,14 @@ function FindPoints()
     return points
 end
 
-function MapElevationsHelper(points, callback)
+function MapElevationsHelper(elevation_data, points, callback)
     if points:Size() > 0 then
         if points:Size() % 200 == 0 then
             print ("remaining", points:Size())
         end
         local point = points:Pop()
-        TestPointElevation(point.x, point.y, function ()
-            MapElevationsHelper(points, callback)
+        TestPointElevation(elevation_data, point.x, point.y, function ()
+            MapElevationsHelper(elevation_data, points, callback)
         end)
     else
         callback()
@@ -251,40 +283,70 @@ function GetSurroundingPoints(x, y)
     return ring
 end
 
-function TestPointElevation(x, y, callback)
+function TestPointElevation(elevation_data, x, y, callback, DEBUG, delay)
+    delay = delay or 0.01
     local ring = GetSurroundingPoints(x, y)
+    if DEBUG then print ("TestPointElevation", x, y, elevation_data[x][y], GetGroundHeight(XYtoWorldXY(x, y), nil), ring:Size(), delay) end
     if ring:Size() > 0 and elevation_data[x][y]~=math.floor(elevation_data[x][y]) then
         local pt1 = {x=x, y=y}
-        ward1 = CreateUnitByName("npc_dota_observer_wards", Vector((pt1.x - 1) * 64 + worldMinX, (pt1.y - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
+        local ward1 = CreateUnitByName("npc_dota_observer_wards", Vector((pt1.x - 1) * 64 + worldMinX, (pt1.y - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
+        if DEBUG then print (ward1:GetOrigin(), ward1:GetAbsOrigin()) end
         ring:Each(function (pt2)
             pt2.ward = CreateUnitByName("npc_dota_observer_wards", Vector((pt2.x - 1) * 64 + worldMinX, (pt2.y - 1) * 64 + worldMinY, 0), false, nil, nil, 3)
+            --if DEBUG then print ("    ", pt2.x, pt2.y) end
+            if DEBUG then print ("    ", pt2.ward:GetOrigin(), pt2.ward:GetAbsOrigin()) end
         end)
-        Timers:CreateTimer(function ()
-            local f
+        --TEAM_INDEX = TEAM_INDEX + 2
+        --if TEAM_INDEX > 10 then TEAM_INDEX = 1 end
+        --print (ring:Size())
+        Timers:CreateTimer(delay, function ()
+            --if x == tx and y == ty then print ("testing", x, y) end
+            local f = 0
             for k, pt2 in pairs(ring:Items()) do
                 local z1, z2 = elevation_data[pt1.x][pt1.y], elevation_data[pt2.x][pt2.y]
                 --if z1==math.floor(z1) then break end
+                --if pt1.x == tx and pt1.y == ty then print (pt1.x, pt1.y, z1, pt2.x, pt2.y, z2) end
                 if z1 <= z2 then
-                    f = ProcessResultHelper(pt1, pt2, z1, z2, ward1:CanEntityBeSeenByMyTeam(pt2.ward))
+                    --local hero = PlayerResource:GetPlayer(0):GetAssignedHero()
+                    local v = ProcessResultHelper(elevation_data, pt1, pt2, z1, z2, ward1:CanEntityBeSeenByMyTeam(pt2.ward), DEBUG)
+                    if f == 0 or v == 1 then
+                        f = v
+                    end
                 end
             end
-            if f ~= nil then
-                elevation_data[pt1.x][pt1.y] = f(elevation_data[pt1.x][pt1.y])
+            if DEBUG then
+                print (f)
+            end
+            if f == -1 then
+                elevation_data[pt1.x][pt1.y] = math.floor(elevation_data[pt1.x][pt1.y])
+            elseif f == 1 then
+                elevation_data[pt1.x][pt1.y] = math.ceil(elevation_data[pt1.x][pt1.y])
             end
             ring:Each(function (pt2)
-                pt2.ward:RemoveSelf()
+                if not DEBUG then pt2.ward:RemoveSelf() end
             end)
-            ward1:RemoveSelf()
+            if not DEBUG then ward1:RemoveSelf() end
             callback()
             return nil
         end)
     else
+        if DEBUG and ring:Size() > 0 then
+            local pt1 = {x=x, y=y}
+            local ward1 = CreateUnitByName("npc_dota_observer_wards", Vector((pt1.x - 1) * 64 + worldMinX, (pt1.y - 1) * 64 + worldMinY, 512), false, nil, nil, 2)
+            if DEBUG then print (ward1:GetOrigin(), ward1:GetAbsOrigin()) end
+            ring:Each(function (pt2)
+                pt2.ward = CreateUnitByName("npc_dota_observer_wards", Vector((pt2.x - 1) * 64 + worldMinX, (pt2.y - 1) * 64 + worldMinY, 0), false, nil, nil, 3)
+                --if DEBUG then print ("    ", pt2.x, pt2.y) end
+                if DEBUG then print ("    ", pt2.ward:GetOrigin(), pt2.ward:GetAbsOrigin()) end
+            end)
+        end
         callback()
     end
 end
 
 -- zA always <= zB
-function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB)
+function ProcessResultHelper(elevation_data, ptA, ptB, zA, zB, ptASeesB, DEBUG)
+    local result = 0
     -- A and B are in same elevation range
     if math.floor(zA) == math.floor(zB) then
         -- A does not see B
@@ -292,7 +354,7 @@ function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB)
             -- zA goes down, zB goes up
             --elevation_data[ptA.x][ptA.y] = math.floor(zA)
             elevation_data[ptB.x][ptB.y] = math.ceil(zB)
-            return math.floor
+            result = -1
         end
     -- B is one elevation above A
     elseif math.floor(zB) - math.floor(zA) == 1 then
@@ -301,14 +363,18 @@ function ProcessResultHelper(ptA, ptB, zA, zB, ptASeesB)
             -- zA goes up, zB goes down
             --elevation_data[ptA.x][ptA.y] = math.ceil(zA)
             elevation_data[ptB.x][ptB.y] = math.floor(zB)
-            return math.ceil
+            --if ptA.x == tx and ptA.y == ty then print ("1 up, 2 down") end
+            result = 1
         -- A does not see B and isint(zB)
         elseif zB==math.floor(zB) then
             -- zA goes down
             --elevation_data[ptA.x][ptA.y] = math.floor(zA)
-            return math.floor
+            --if ptA.x == tx and ptA.y == ty then print ("1 down") end
+            result = -1
         end
     end
+    if DEBUG then print (ptA.x, ptA.y, ptB.x, ptB.y, zA, zB, ptASeesB, result) end
+    return result
 end
 
 function SetNoVision()
@@ -398,11 +464,39 @@ end]]
     AppendToLogFile("treeelevationdata.json", json.encode({data = data}))
 end]]
 
+function OnSubmit(eventSourceIndex, args)
+    print("OnSubmit", eventSourceIndex)
+    PrintTable(args)
+    local elevation_data = GetElevationData()
+    local x, y, delay = tonumber(args.x), tonumber(args.y), tonumber(args.delay)
+    if x ~= nil and y ~= nil then
+        print( x, y, elevation_data[x][y], GetGroundHeight(XYtoWorldXY(x, y), nil), GetGroundPosition(XYtoWorldXY(x, y), nil))
+        TestPointElevation(elevation_data, x, y, function ()
+            print( x, y, elevation_data[x][y])
+        end, true, delay)
+    else
+        print ("invalid input", x, y)
+    end
+end
+
+function OnClear(eventSourceIndex, args)
+    print("OnClear", eventSourceIndex)
+    PrintTable(args)
+    local wards = Entities:FindAllByClassname("npc_dota_ward_base")
+    if wards ~= nil then
+        for k, ent in pairs(wards) do
+            ent:RemoveSelf()
+        end
+    end
+end
+
 function GameMode:InitGameMode()
     --GenerateMapData("mapdata.json")
     GameRules:SetTreeRegrowTime(99999999)
     GameRules:SetPreGameTime(3)
     ListenToGameEvent("game_rules_state_change", Dynamic_Wrap(GameMode, "OnGameRulesStateChange"), self)
+    CustomGameEventManager:RegisterListener( "submit", OnSubmit )
+    CustomGameEventManager:RegisterListener( "clear", OnClear )
     SendToServerConsole( "sv_cheats 1" )
     SendToServerConsole( "dota_creeps_no_spawning 1" )
     GameRules:GetGameModeEntity():SetThink( "OnSetTimeOfDayThink", self, "SetTimeOfDay", 2 )
@@ -417,6 +511,7 @@ end
 function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+        InitWorldData()
         --[[world_data = {
             worldMaxX = GetWorldMaxX(),
             worldMaxY = GetWorldMaxY(),
@@ -425,21 +520,33 @@ function GameMode:OnGameRulesStateChange()
         }
         AppendToLogFile("worlddata.json", json.encode(world_data))]]
         
-        --GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
+        GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
         DestroyBuildings()
         SetNoVision()
-        --[[InitElevationData()
-        TestGridNav("gridnavdata.json")
         
-        Timers:CreateTimer(1, function ()
-            MapElevations(nil, function ()
-                AppendToLogFile("elevationdata.json", json.encode(elevation_data))
-            end)
-            return nil
-        end)]]
-        
-
-        
+        if not DEBUG then
+            local elevation_data = GetElevationData(0.75)
+            TestGridNav("gridnavdata.json")
+            AppendToLogFile("elevationdata.json", json.encode({data = elevation_data}))
+            --[[Timers:CreateTimer(1, function ()
+                MapElevations(elevation_data, nil, function ()
+                    AppendToLogFile("elevationdata.json", json.encode({data = elevation_data}))
+                end)
+                return nil
+            end)]]
+        else
+            --[[local elevation_data = GetElevationData()
+            print( tx, ty, elevation_data[tx][ty])
+            TestPointElevation(tx, ty, function ()
+                print( tx, ty, elevation_data[tx][ty])
+                
+                --local w1 = CreateUnitByName("npc_dota_observer_wards", Vector((tx - 1) * 64 + worldMinX, (ty - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
+                --print (w1:GetOrigin(), XYtoWorldXY(tx, ty))
+            end)]]
+            --local w1 = CreateUnitByName("npc_dota_observer_wards", Vector((tx - 1) * 64 + worldMinX, (ty - 1) * 64 + worldMinY, 0), false, nil, nil, 2)
+            --AddFOWViewer(2, Vector((tx - 1) * 64 + worldMinX, (ty - 1) * 64 + worldMinY, 0), 1000, 60, true)
+            --AddFOWViewer(2, Vector(0, 0, 0), 200, 60, true)
+        end
         --ward = CreateUnitByName("npc_dota_observer_wards", Vector(0, 0, 0), true, nil, nil, 2)
         --TestWardPlace()
         
