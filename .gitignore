@@ -28,3 +28,4 @@ maps/
 node_modules/
 *.pyc
 *.vmap.txt
+data/dire_basic_tools_no_wards.txt

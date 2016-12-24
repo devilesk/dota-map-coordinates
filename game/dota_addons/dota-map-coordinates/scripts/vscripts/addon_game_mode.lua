@@ -493,7 +493,7 @@ function OnClear(eventSourceIndex, args)
 end
 
 function GameMode:InitGameMode()
-    --GenerateMapData("mapdata.json")
+    GenerateMapData("mapdata.json")
     GameRules:SetTreeRegrowTime(99999999)
     GameRules:SetPreGameTime(3)
     ListenToGameEvent("game_rules_state_change", Dynamic_Wrap(GameMode, "OnGameRulesStateChange"), self)
@@ -502,7 +502,6 @@ function GameMode:InitGameMode()
     SendToServerConsole( "sv_cheats 1" )
     SendToServerConsole( "dota_creeps_no_spawning 1" )
     GameRules:GetGameModeEntity():SetThink( "OnSetTimeOfDayThink", self, "SetTimeOfDay", 2 )
-    --GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
 end
 
 function GameMode:OnSetTimeOfDayThink()
@@ -514,13 +513,13 @@ function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
         InitWorldData()
-        --[[world_data = {
+        world_data = {
             worldMaxX = GetWorldMaxX(),
             worldMaxY = GetWorldMaxY(),
             worldMinX = GetWorldMinX(),
             worldMinY = GetWorldMinY()
         }
-        AppendToLogFile("worlddata.json", json.encode(world_data))]]
+        AppendToLogFile("worlddata.json", json.encode(world_data))
         
         GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
         DestroyBuildings()

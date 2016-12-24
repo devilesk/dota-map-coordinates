@@ -89,7 +89,7 @@ def generate_ent_fow_blocker_node_image(files, dst):
 
 def generate_tree_elevation_image(src, dst):
     with open(src, 'r') as f:
-        data = json.loads(f.read())['ent_dota_tree']
+        data = json.loads(f.read())['data']['ent_dota_tree']
         image = Image.new('RGB', (gridWidth, gridHeight), (255, 255, 255))
         pixels = image.load()
         for pt in data:
