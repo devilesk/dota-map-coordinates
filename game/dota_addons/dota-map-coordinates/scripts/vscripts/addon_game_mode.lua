@@ -163,7 +163,7 @@ function InitWorldData()
     gridHeight = b
 end
 
-function GetElevationData(threshold)
+function GetElevationData(threshold, do_ceil)
     local data = {}
     threshold = threshold or 0
     for i = 1, gridWidth - 1 do
@@ -175,6 +175,8 @@ function GetElevationData(threshold)
                 data[i][j] = zI
             elseif zF < -threshold then
                 data[i][j] = math.floor(z)
+            elseif do_ceil then
+                data[i][j] = math.ceil(z)
             else
                 data[i][j] = z
             end
@@ -525,7 +527,7 @@ function GameMode:OnGameRulesStateChange()
         SetNoVision()
         
         if not DEBUG then
-            local elevation_data = GetElevationData(0.75)
+            local elevation_data = GetElevationData(0.75, true)
             TestGridNav("gridnavdata.json")
             AppendToLogFile("elevationdata.json", json.encode({data = elevation_data}))
             --[[Timers:CreateTimer(1, function ()
