@@ -162,7 +162,7 @@ def any_contains_corner(data, point):
                    [point[0] - 32, point[1] + 32],
                    [point[0] + 32, point[1] + 32],
                    [point[0] + 32, point[1] - 32]]
-    r = 4
+    r = 2
     for points in data:
         for corner in tile_points:
             corner_points = [[corner[0] - r, corner[1] - r],
