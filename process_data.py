@@ -63,7 +63,7 @@ def generate_elevation_image(src, dst):
             for gY in range(0, len(row)):
                 x, y = grid_to_image(gX, gY)
                 z = int(data[gX][gY]) + 1
-                pixels[x, y] = (10 * z, 0, 0)
+                pixels[x, y] = (20 * z, 20 * z, 20 * z)
         image.save(dst)
 
 def generate_ent_fow_blocker_node_image(files, dst):
@@ -95,7 +95,7 @@ def generate_tree_elevation_image(src, dst):
         for pt in data:
             x, y = world_to_image(pt['x'], pt['y'])
             z = int(pt['z'] / 128) + 1
-            pixels[x, y] = (10 * z, 0, 0)
+            pixels[x, y] = (20 * z, 0, 0)
         image.save(dst)
 
 def parse_tools_no_wards_prefab(src, dst):
