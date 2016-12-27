@@ -521,8 +521,8 @@ function GameMode:OnGameRulesStateChange()
         }
         AppendToLogFile("worlddata.json", json.encode(world_data))
         
-        GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
-        DestroyBuildings()
+        --GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
+        --DestroyBuildings()
         SetNoVision()
         
         if not DEBUG then

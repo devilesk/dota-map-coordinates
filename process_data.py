@@ -52,6 +52,7 @@ def generate_gridnav_image(src, dst):
             x, y = world_to_image(pt['x'], pt['y'])
             pixels[x, y] = (0, 0, 0)
         image.save(dst)
+    return image
 
 def generate_elevation_image(src, dst):
     with open(src, 'r') as f:
@@ -98,35 +99,31 @@ def generate_tree_elevation_image(src, dst):
             pixels[x, y] = (20 * z, 0, 0)
         image.save(dst)
 
-def parse_tools_no_wards_prefab(src, dst):
-
-    def process_file(src):
-        data = []
-        buff = []
-        begin = False
-        tools_no_wards = False
-        with open(src, 'r') as f:
-            for line in f.readlines():
-                if line.startswith('"CMapEntity"') or line.startswith('"CMapTile"') or line.startswith('"CMapMesh"'):
-                    begin = True
-                    buff = []
-                if begin:
-                    buff.append(line)
-                    if '"materials/tools/tools_no_wards.vmat"' in line:
-                        tools_no_wards = True
-                    if line.startswith('}'):
-                        if tools_no_wards:
-                            data += buff
-                            tools_no_wards = False
-                        begin = False
-        return data
-
-    data = process_file(src)
+def parse_material_from_prefab(src, material, dst):
+    data = []
+    buff = []
+    begin = False
+    tools_no_wards = False
+    with open(src, 'r') as f:
+        for line in f.readlines():
+            if line.startswith('"CMapEntity"') or line.startswith('"CMapTile"') or line.startswith('"CMapMesh"'):
+                begin = True
+                buff = []
+            if begin:
+                buff.append(line)
+                if material in line:
+                    tools_no_wards = True
+                if line.startswith('}'):
+                    if tools_no_wards:
+                        data += buff
+                        tools_no_wards = False
+                    begin = False
+                    
     with open(dst, 'w') as f:
         for line in data:
             f.write(line)
 
-def generate_tools_no_wards_data(parser_src, prefab_src, dst):
+def generate_material_data(parser_src, prefab_src, dst):
     data = json.loads(subprocess.Popen(["node", parser_src, prefab_src], stdout=subprocess.PIPE).communicate()[0])
 
     def process_mesh(mesh):
@@ -193,7 +190,7 @@ def contains_point(points, point):
     bbPath = mplPath.Path(np.array(points))
     return bbPath.contains_point(point)
 
-def generate_tools_no_wards_image(src, dst, image=None):
+def generate_image_from_data(src, dst, image=None, c=(0, 0, 0), func=any_contains_corner):
     if image is None:
         image = Image.new('RGB', (gridWidth, gridHeight), (255, 255, 255))
 
@@ -203,10 +200,35 @@ def generate_tools_no_wards_image(src, dst, image=None):
         for gX in range(0, gridWidth):
             for gY in range(0, gridHeight):
                 wX, wY = grid_to_world(gX, gY)
-                if any_contains_corner(data, [wX, wY]):
+                if func(data, [wX, wY]):
                     x, y = grid_to_image(gX, gY)
-                    pixels[x, y] = (0, 0, 0)
+                    pixels[x, y] = c
+            print gX, gridWidth
         image.save(dst)
+    return image
+
+def generate_toolswardsonly_from_data(src, dst, image=None, c=(0, 0, 0)):
+    points = []
+    with open(src, 'r') as f:
+        data = json.loads(f.read())['data']
+        center = [0, 0]
+        for block in data:
+            for corner in block:
+                center = [x for x in map(add, center, corner)]
+            center = [x for x in map(div, center, [4, 4])]
+            gX, gY = world_to_grid(center[0], center[1])
+            print gX, gY
+            points.append([gX, gY])
+
+    if image is None:
+        image = Image.new('RGB', (gridWidth, gridHeight), (255, 255, 255))
+
+    pixels = image.load()
+    for point in points:
+        x, y = grid_to_image(point[0], point[1])
+        print x, y
+        pixels[x, y] = c
+    image.save(dst)
     return image
 
 def parse_vmap_for_cell_info(src, layer_name='defaultLayer'):
@@ -398,24 +420,40 @@ gridWidth, gridHeight = load_world_data("data/worlddata.json")
 
 print 'loaded world data', worldMinX, worldMinY, worldMaxX, worldMaxY, worldWidth, worldHeight, gridWidth, gridHeight
 print 'generating gridnav image'
-generate_gridnav_image("data/gridnavdata.json", "img/gridnav.png")
+##gridnav = generate_gridnav_image("data/gridnavdata.json", "img/gridnav.png")
+
+### subtract toolswardsonly from gridnav image
+##print 'parsing dota_pvp_prefab for toolswardsonly'
+##parse_material_from_prefab("data/dota_pvp_prefab.vmap.txt", '"materials/tools/toolswardsonly.vmat"', "data/toolswardsonly.txt")
+##print 'generating toolswardsonly data'
+##generate_material_data("keyvalues2.js", "data/toolswardsonly.txt", "data/toolswardsonly.json")
+##print 'subtract toolswardsonly from gridnav image'
+####generate_toolswardsonly_from_data("data/toolswardsonly.json", "img/gridnav.png", gridnav, (255, 255, 255))
+##generate_image_from_data("data/toolswardsonly.json", "img/gridnav.png", gridnav, (255, 255, 255), any_contains_point)
+
 print 'generating elevation image'
-generate_elevation_image("data/elevationdata.json", "img/elevation.png")
+##generate_elevation_image("data/elevationdata.json", "img/elevation.png")
+
 print 'generating ent_fow_blocker_node image'
-generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
+##generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
+
 print 'generating tree_elevation image'
-generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
-print 'parsing dota_pvp_prefab'
-parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
+##generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
+
+print 'parsing dota_pvp_prefab for tools_no_wards'
+##parse_material_from_prefab("data/dota_pvp_prefab.vmap.txt", '"materials/tools/tools_no_wards.vmat"', "data/tools_no_wards.txt")
 print 'generating tools_no_wards data'
-generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
+##generate_material_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
 print 'generating tools_no_wards image'
-im = generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
+##im = generate_image_from_data("data/tools_no_wards.json", "img/tools_no_wards.png")
+
 # add tools_no_wards from tiles to image
-print 'parsing dire_basic prefab'
-parse_tools_no_wards_prefab("data/dire_basic.vmap.txt", "data/dire_basic_tools_no_wards.txt")
+##print 'parsing dire_basic prefab'
+##parse_tools_no_wards_prefab("data/dire_basic.vmap.txt", "data/dire_basic_tools_no_wards.txt")
 print 'adding tile data to tools_no_wards image'
-generate_tools_no_wards_image_from_tile_data("keyvalues2.js", "data/dire_basic_tools_no_wards.txt", "img/tools_no_wards.png", im)
+##generate_tools_no_wards_image_from_tile_data("keyvalues2.js", "data/dire_basic_tools_no_wards.txt", "img/tools_no_wards.png", im)
+
 print 'stitching final image'
 stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
+
 print 'done'
