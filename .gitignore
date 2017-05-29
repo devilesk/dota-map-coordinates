@@ -24,7 +24,7 @@ game/dota_addons/sandbox/resource/overviews/*
 #Github dump
 *.stackdump
 
-maps/
+# maps/
 node_modules/
 *.pyc
 *.vmap.txt
