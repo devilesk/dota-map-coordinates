@@ -146,10 +146,14 @@ function WorldXYtoXY(worldXYVector)
 end
 
 function InitWorldData()
-    worldMaxX = GetWorldMaxX()
+    --[[worldMaxX = GetWorldMaxX()
     worldMaxY = GetWorldMaxY()
     worldMinX = GetWorldMinX()
-    worldMinY = GetWorldMinY()
+    worldMinY = GetWorldMinY()]]
+    worldMaxX = 8288
+    worldMaxY = 8288
+    worldMinX = -8288
+    worldMinY = -8288
     local a = 1
     local b = 1
     for i = worldMinX , worldMaxX, gridSize do
@@ -513,11 +517,17 @@ function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
         InitWorldData()
-        world_data = {
+        --[[world_data = {
             worldMaxX = GetWorldMaxX(),
             worldMaxY = GetWorldMaxY(),
             worldMinX = GetWorldMinX(),
             worldMinY = GetWorldMinY()
+        }]]
+        world_data = {
+            worldMaxX = 8288,
+            worldMaxY = 8288,
+            worldMinX = -8288,
+            worldMinY = -8288
         }
         AppendToLogFile("worlddata.json", json.encode(world_data))
         
