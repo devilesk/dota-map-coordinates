@@ -3,11 +3,29 @@ require("libraries/json")
 require("libraries/timers")
 require("libraries/list")
 
+RANGE_PARTICLE = "particles/custom/range_display.vpcf"
+
+function CreateParticleCircle(ent, radius, prop)
+	local particle
+    local hero = PlayerResource:GetSelectedHeroEntity(0)
+    local player = PlayerResource:GetPlayer(0)
+    particle = ParticleManager:CreateParticleForPlayer(RANGE_PARTICLE, PATTACH_CUSTOMORIGIN, hero, player)
+    print (ent:GetAbsOrigin())
+    --[[if ent[prop] ~= nil then
+        ParticleManager:DestroyParticle(ent[prop], true)
+    end]]
+    --ent[prop] = particle
+	ParticleManager:SetParticleControl(particle, 0, ent:GetAbsOrigin())
+	ParticleManager:SetParticleControl(particle, 1, Vector(radius, 100, 100))
+	return particle
+end
+
 if GameMode == nil then
     GameMode = class({})
 end
 
 function Precache( context )
+    PrecacheResource( "particle", RANGE_PARTICLE, context )
 end
 
 -- Create the game mode when we activate
@@ -45,6 +63,10 @@ function DumpCoordinateData(keys, schema, out)
                         v2c(b3),
                         v2c(b4)
                     }
+                    if ent:GetName() ~= "" then
+                        c.name = ent:GetName()
+                        print (ent:GetName())
+                    end
                     table.insert(data[v], c)
                 end
             end
@@ -56,16 +78,74 @@ function DumpCoordinateData(keys, schema, out)
                 if v == "ent_dota_tree" then
                     b1.z = ent:GetOrigin().z
                 end
+                print (ent:GetClassname())
+                if ent:GetName() ~= "" then
+                    b1.name = ent:GetName()
+                    print (ent:GetName())
+                end
+                
+                if ent.HasAttackCapability and ent:HasAttackCapability() then
+                    if ent.GetAttackRange then
+                        --print (ent:GetAttackRange())
+                        b1.attackRange = ent:GetAttackRange()
+                    end
+                    if ent.GetBaseDamageMax then
+                        --print (ent:GetBaseDamageMax())
+                        b1.damageMax = ent:GetBaseDamageMax()
+                    end
+                    if ent.GetBaseDamageMin then
+                        --print (ent:GetBaseDamageMin())
+                        b1.damageMin = ent:GetBaseDamageMin()
+                    end
+                end
+                
+                if ent:GetTeamNumber() ~= 0 then
+                    if ent.GetBaseDayTimeVisionRange then
+                        print (ent:GetBaseDayTimeVisionRange())
+                        b1.dayVision = ent:GetBaseDayTimeVisionRange()
+                    end
+                    if ent.GetBaseNightTimeVisionRange then
+                        print (ent:GetBaseNightTimeVisionRange())
+                        b1.nightVision = ent:GetBaseNightTimeVisionRange()
+                    end
+                end
+                
+                if ent.GetBaseHealthRegen then
+                    --print (ent:GetBaseHealthRegen())
+                    b1.healthRegen = ent:GetBaseHealthRegen()
+                end
+                if ent.GetBaseMaxHealth then
+                    --print (ent:GetBaseMaxHealth())
+                    b1.health = ent:GetBaseMaxHealth()
+                end
+                if ent.GetPhysicalArmorValue then
+                    --print (ent:GetPhysicalArmorValue())
+                    b1.armor = ent:GetPhysicalArmorValue()
+                end
+                if ent.GetTeamNumber then
+                    ---print (ent:GetTeamNumber())
+                    b1.team = ent:GetTeamNumber()
+                end
+                if ent.GetBaseAttackTime then
+                    --print (ent:GetBaseAttackTime())
+                    b1.bat = ent:GetBaseAttackTime()
+                end
+                
+                if v ~= "ent_dota_tree" and ent.GetBoundingMaxs then
+                    --print (ent:GetBaseAttackTime())
+                    b1.bounds = {ent:GetBoundingMaxs().x, ent:GetBoundingMaxs().y}
+                end
+
                 table.insert(data[v], b1)
             end
         end
     end
     
-    for k, v in pairs(schema) do
-        print (k .. v)
+    --[[for k, v in pairs(schema) do
+        print (k .. " to " .. v)
         data[v] = data[k]
         data[k] = nil
-    end
+    end]]
     AppendToLogFile(out, json.encode({data = data}))
 end
 
@@ -78,12 +158,14 @@ function GenerateMapData(out)
             "npc_dota_roshan_spawner",
             "dota_item_rune_spawner_powerup",
             "dota_item_rune_spawner_bounty",
+            "ent_dota_fountain",
             "ent_dota_shop",
             "ent_dota_tree",
             "npc_dota_barracks",
             "npc_dota_filler",
             "npc_dota_fort",
-            "npc_dota_tower"
+            "npc_dota_tower",
+            "npc_dota_neutral_spawner"
         },
         {
             dota_item_rune_spawner_powerup = "dota_item_rune_spawner",
@@ -120,7 +202,7 @@ local gridWidth = 1
 local gridHeight = 1
 local tx = 129
 local ty = 127
-local DEBUG = false
+local DEBUG = true
 
 local TEAM_INDEX = 1
 local TEAMS = {
@@ -470,6 +552,18 @@ end]]
     AppendToLogFile("treeelevationdata.json", json.encode({data = data}))
 end]]
 
+function CreateNeutralCircles()
+    Timers:CreateTimer(function ()
+        local entities = Entities:FindAllByClassname("npc_dota_neutral_spawner")
+        for k, ent in pairs(entities) do
+            CreateParticleCircle(ent, 400, PlayerResource:GetPlayer(0))
+        end
+        local hero = PlayerResource:GetSelectedHeroEntity(0)
+        CreateParticleCircle(hero, 400, PlayerResource:GetPlayer(0))
+        return nil
+    end)
+end
+
 function OnSubmit(eventSourceIndex, args)
     print("OnSubmit", eventSourceIndex)
     PrintTable(args)
@@ -494,6 +588,28 @@ function OnClear(eventSourceIndex, args)
             ent:RemoveSelf()
         end
     end
+    OnTestNeutralRange(eventSourceIndex, args)
+end
+
+local particles = {}
+function OnTestNeutralRange(eventSourceIndex, args)
+    local x, y, delay = tonumber(args.x), tonumber(args.y), tonumber(args.delay)
+    for k, particle in pairs(particles) do
+        print ("destroy", particle)
+        ParticleManager:DestroyParticle(particle, true)
+    end
+    particles = {}
+    
+    local entities = Entities:FindAllByClassname("npc_dota_creep_neutral")
+    
+    for k, ent in pairs(entities) do
+        if ent ~= nil and ent:IsAlive() then
+            table.insert(particles, CreateParticleCircle(ent, 400, "guard_range"))
+            table.insert(particles, CreateParticleCircle(ent, 400 + x * ent:GetBaseMoveSpeed(), "max_range"))
+        end
+    end
+    local mode = GameRules:GetGameModeEntity()
+    mode:SetFogOfWarDisabled(true)
 end
 
 function GameMode:InitGameMode()
@@ -509,13 +625,16 @@ function GameMode:InitGameMode()
 end
 
 function GameMode:OnSetTimeOfDayThink()
-    GameRules:SetTimeOfDay(.5)
+    GameRules:SetTimeOfDay(0.5)
     return 10
 end
 
 function GameMode:OnGameRulesStateChange()
     local nNewState = GameRules:State_Get()
     if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+        --CreateNeutralCircles()
+        
+    
         InitWorldData()
         --[[world_data = {
             worldMaxX = GetWorldMaxX(),
@@ -531,9 +650,10 @@ function GameMode:OnGameRulesStateChange()
         }
         AppendToLogFile("worlddata.json", json.encode(world_data))
         
+        
         GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
-        DestroyBuildings()
-        SetNoVision()
+        --DestroyBuildings()
+        --SetNoVision()
         
         if not DEBUG then
             local elevation_data = GetElevationData(0.75, true)
