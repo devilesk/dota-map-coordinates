@@ -202,7 +202,7 @@ local gridWidth = 1
 local gridHeight = 1
 local tx = 129
 local ty = 127
-local DEBUG = true
+local DEBUG = false
 
 local TEAM_INDEX = 1
 local TEAMS = {
