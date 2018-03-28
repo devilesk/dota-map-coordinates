@@ -14,7 +14,7 @@ Copy both folders `dota-map-coordinates/content/` and  `dota-map-coordinates/gam
 
 Launch the custom game in Workshop Tools (Right click the Dota 2 Icon and Choose `Launch Dota2 - Tools` You need to install it first). You could see a new Custom Games named `dota-map-coordinates`. Selete it and launch the game.
 
-![gridnav.png](img/Coodinates_Guide1.png?raw=true)
+![gridnav.png](img/Coodinates_Guide1.png)
 
 Open your Console and enter `dota_lauch_custom_game dota2`. And wait the game start. Select a hero and enter the game. Once the game lord completely the following files will be generated automatically :
 
