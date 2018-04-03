@@ -4,19 +4,19 @@ Custom game for dumping map entity coordinate data to JSON and scripts for gener
 
 ## Usage
 
-### Step 1 Copy latest Map meta data
+### Step 1 Copy the latest map meta data
 
 Run `copymap.bat` to get the latest dota map files. Also creates an empty mapdata.txt output file.
 
-### Step 2 Create the Custom game
+### Step 2 Create the custom game
 
 Copy both folders `dota-map-coordinates/content/` and  `dota-map-coordinates/game/` to `<your_dota2_directory>/steamapps/common/dota 2 beta/` 
 
-Launch the custom game in Workshop Tools (Right click the Dota 2 Icon and Choose `Launch Dota2 - Tools` You need to install it first). You could see a new Custom Games named `dota-map-coordinates`. Selete it and launch the game.
+Launch the custom game in Workshop Tools (Right click the Dota 2 Icon and Choose `Launch Dota2 - Tools`. Workshop Tools needs to already be installed). You will see a new custom game named `dota-map-coordinates`. Select it and launch the game.
 
-![gridnav.png](img/Coodinates_Guide1.png)
+![docs_guide1.png](docs_guide1.png?raw=true)
 
-Open your Console and enter `dota_lauch_custom_game dota2`. And wait the game start. Select a hero and enter the game. Once the game lord completely the following files will be generated automatically :
+Open your console, enter `dota_lauch_custom_game dota`, and wait for the to game start. Select a hero and enter the game. Once the game has loaded completely, the following files will be automatically generated:
 
 * `mapdata.json` - Coordinates of all buildings, trees, shops, etc.
 
@@ -40,7 +40,7 @@ Run `copydata.bat` to copy the generated files from the dota directory to the da
 
 Run `textvmap.bat` to generate the vmap.txt files using dmxconvert. Text vmaps can also be created by opening the prefab files in Hammer and doing Save Copy As Text.
 
-Run `process_data.py` to generate json and images based on the data. Some requirements need to be installed and it‘s supported by `python 2.7` 
+Run `process_data.py` to generate json and images based on the data. (Only supports `python 2.7` and some requirements need to be installed)
 
 ## Output
 
