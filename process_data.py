@@ -353,10 +353,16 @@ def generate_tools_no_wards_image_from_tile_data(parser_src, prefab_src, dst, im
         for cell in cells:
             points = []
             for vertex in mesh_obj.get_vertices():
+                print cell, vertex
+                # rotation around point
                 if cell[3] == 0:
                     v = vertex[:2]
                 elif cell[3] == 3:
                     v = [vertex[1], -vertex[0]]
+                elif cell[3] == 1:
+                    v = [-vertex[1], vertex[0]]
+                elif cell[3] == 2:
+                    v = [-vertex[0], -vertex[1]]
                 else:
                     print 'unhandled orientation', cell[3]
                     raise ValueError
