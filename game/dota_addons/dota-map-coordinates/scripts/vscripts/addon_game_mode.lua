@@ -10,7 +10,7 @@ function CreateParticleCircle(ent, radius, prop)
     local hero = PlayerResource:GetSelectedHeroEntity(0)
     local player = PlayerResource:GetPlayer(0)
     particle = ParticleManager:CreateParticleForPlayer(RANGE_PARTICLE, PATTACH_CUSTOMORIGIN, hero, player)
-    print (ent:GetAbsOrigin())
+    --print (ent:GetAbsOrigin())
     --[[if ent[prop] ~= nil then
         ParticleManager:DestroyParticle(ent[prop], true)
     end]]
@@ -45,7 +45,7 @@ function DumpCoordinateData(keys, schema, out)
     local data = {}
     
     for k, v in pairs(keys) do
-        print(v)
+        --print(v)
         data[v] = {}
         local entities = Entities:FindAllByClassname(v)
         if v == "trigger_multiple" then
@@ -65,7 +65,7 @@ function DumpCoordinateData(keys, schema, out)
                     }
                     if ent:GetName() ~= "" then
                         c.name = ent:GetName()
-                        print (ent:GetName())
+                        --print (ent:GetName())
                     end
                     table.insert(data[v], c)
                 end
@@ -78,10 +78,10 @@ function DumpCoordinateData(keys, schema, out)
                 if v == "ent_dota_tree" then
                     b1.z = ent:GetOrigin().z
                 end
-                print (ent:GetClassname())
+                --print (ent:GetClassname())
                 if ent:GetName() ~= "" then
                     b1.name = ent:GetName()
-                    print (ent:GetName())
+                    --print (ent:GetName())
                 end
                 
                 if ent.HasAttackCapability and ent:HasAttackCapability() then
@@ -101,11 +101,11 @@ function DumpCoordinateData(keys, schema, out)
                 
                 if ent:GetTeamNumber() ~= 0 then
                     if ent.GetBaseDayTimeVisionRange then
-                        print (ent:GetBaseDayTimeVisionRange())
+                        --print (ent:GetBaseDayTimeVisionRange())
                         b1.dayVision = ent:GetBaseDayTimeVisionRange()
                     end
                     if ent.GetBaseNightTimeVisionRange then
-                        print (ent:GetBaseNightTimeVisionRange())
+                        --print (ent:GetBaseNightTimeVisionRange())
                         b1.nightVision = ent:GetBaseNightTimeVisionRange()
                     end
                 end
@@ -146,7 +146,10 @@ function DumpCoordinateData(keys, schema, out)
         data[v] = data[k]
         data[k] = nil
     end]]
-    AppendToLogFile(out, json.encode({data = data}))
+    print("[start]")
+    print(out)
+    tprint({data = data})
+    print("[end]")
 end
 
 function GenerateMapData(out)
@@ -484,13 +487,16 @@ function TestGridNav(out)
             --local z = GetGroundHeight(Vector(i, j, 0), nil)
             local pos = XYtoWorldXY(i, j)
             local bIsTraversable = GridNav:IsTraversable(pos)
-            print (i, j, bIsTraversable)
+            --print (i, j, bIsTraversable)
             if not bIsTraversable then
                 table.insert(points, {x = pos.x, y = pos.y})
             end
         end
     end
-    AppendToLogFile(out, json.encode({data = points}))
+    print("[start]")
+    print(out)
+    tprint({data = points})
+    print("[end]")
     return points
 end
 
@@ -566,7 +572,7 @@ end
 
 function OnSubmit(eventSourceIndex, args)
     print("OnSubmit", eventSourceIndex)
-    PrintTable(args)
+    --PrintTable(args)
     local elevation_data = GetElevationData()
     local x, y, delay = tonumber(args.x), tonumber(args.y), tonumber(args.delay)
     if x ~= nil and y ~= nil then
@@ -581,7 +587,7 @@ end
 
 function OnClear(eventSourceIndex, args)
     print("OnClear", eventSourceIndex)
-    PrintTable(args)
+    --PrintTable(args)
     local wards = Entities:FindAllByClassname("npc_dota_ward_base")
     if wards ~= nil then
         for k, ent in pairs(wards) do
@@ -648,7 +654,10 @@ function GameMode:OnGameRulesStateChange()
             worldMinX = -8288,
             worldMinY = -8288
         }
-        AppendToLogFile("worlddata.json", json.encode(world_data))
+        print("[start]")
+        print("worlddata.json")
+        tprint(world_data)
+        print("[end]")
         
         
         GridNav:DestroyTreesAroundPoint(Vector(0, 0, 0), 9999, true)
@@ -658,7 +667,10 @@ function GameMode:OnGameRulesStateChange()
         if not DEBUG then
             local elevation_data = GetElevationData(0.75, true)
             TestGridNav("gridnavdata.json")
-            AppendToLogFile("elevationdata.json", json.encode({data = elevation_data}))
+            print("[start]")
+            print("elevationdata.json")
+            tprint({data = elevation_data})
+            print("[end]")
             --[[Timers:CreateTimer(1, function ()
                 MapElevations(elevation_data, nil, function ()
                     AppendToLogFile("elevationdata.json", json.encode({data = elevation_data}))
@@ -705,5 +717,22 @@ function GameMode:OnGameRulesStateChange()
             print (hero:GetOrigin())
             return 1
         end)]]
+    end
+end
+
+-- Print contents of `tbl`, with indentation.
+-- `indent` sets the initial level of indentation.
+function tprint (tbl, indent)
+    if not indent then indent = 0 end
+    for k, v in pairs(tbl) do
+        formatting = string.rep("  ", indent) .. k .. ": "
+        if type(v) == "table" then
+            print(formatting)
+            tprint(v, indent+1)
+        elseif type(v) == 'boolean' then
+            print(formatting .. tostring(v))      
+        else
+            print(formatting .. v)
+        end
     end
 end
