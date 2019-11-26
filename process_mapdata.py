@@ -53,7 +53,7 @@ with open('data/mapdata.json', 'r') as f:
     meta = {}
     coorddata = {}
     for key in data:
-        print key
+        print (key)
         if key == 'trigger_multiple':
             coorddata[key] = []
             for obj in data[key]:

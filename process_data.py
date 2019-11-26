@@ -5,7 +5,7 @@ import numpy as np
 import subprocess
 import tempfile
 from graham_scan import convex_hull
-from operator import add, div, sub
+from operator import add, sub
 from PIL import Image
     
 def load_world_data(src):
@@ -17,8 +17,8 @@ def load_world_data(src):
         worldMaxY = data['worldMaxY']
         worldWidth = worldMaxX - worldMinX
         worldHeight = worldMaxY - worldMinY
-        gridWidth = worldWidth / 64 + 1
-        gridHeight = worldHeight / 64 + 1
+        gridWidth = int(worldWidth / 64 + 1)
+        gridHeight = int(worldHeight / 64 + 1)
         return worldMinX, worldMinY, \
                worldMaxX, worldMaxY, \
                worldWidth, worldHeight, \
@@ -319,7 +319,7 @@ class CMapMesh:
             return None
         buf = process_file(src)
         if buf:
-            with tempfile.NamedTemporaryFile() as tmp:
+            with tempfile.NamedTemporaryFile(mode='w') as tmp:
                 for line in buf:
                     tmp.write(line)
                 tmp.flush()
@@ -353,7 +353,7 @@ def generate_tools_no_wards_image_from_tile_data(parser_src, prefab_src, dst, im
         for cell in cells:
             points = []
             for vertex in mesh_obj.get_vertices():
-                print cell, vertex
+                print(cell, vertex)
                 # rotation around point
                 if cell[3] == 0:
                     v = vertex[:2]
@@ -364,7 +364,7 @@ def generate_tools_no_wards_image_from_tile_data(parser_src, prefab_src, dst, im
                 elif cell[3] == 2:
                     v = [-vertex[0], -vertex[1]]
                 else:
-                    print 'unhandled orientation', cell[3]
+                    print('unhandled orientation', cell[3])
                     raise ValueError
                 point = [x for x in map(add, v, cell[1:3])]
                 points.append(tuple(point))
@@ -382,7 +382,7 @@ def generate_tools_no_wards_image_from_tile_data(parser_src, prefab_src, dst, im
     return image
 
 def stitch_images(files, dst):
-    images = map(Image.open, files)
+    images = list(map(Image.open, files))
     widths, heights = zip(*(i.size for i in images))
 
     total_width = sum(widths)
@@ -392,8 +392,8 @@ def stitch_images(files, dst):
 
     x_offset = 0
     for im in images:
-      new_im.paste(im, (x_offset,0))
-      x_offset += im.size[0]
+        new_im.paste(im, (x_offset,0))
+        x_offset += im.size[0]
 
     new_im.save(dst)
 
@@ -402,26 +402,26 @@ worldMaxX, worldMaxY, \
 worldWidth, worldHeight, \
 gridWidth, gridHeight = load_world_data("data/worlddata.json")
 
-print 'loaded world data', worldMinX, worldMinY, worldMaxX, worldMaxY, worldWidth, worldHeight, gridWidth, gridHeight
-print 'generating gridnav image'
+print('loaded world data', worldMinX, worldMinY, worldMaxX, worldMaxY, worldWidth, worldHeight, gridWidth, gridHeight)
+print('generating gridnav image')
 generate_gridnav_image("data/gridnavdata.json", "img/gridnav.png")
-print 'generating elevation image'
+print('generating elevation image')
 generate_elevation_image("data/elevationdata.json", "img/elevation.png")
-print 'generating ent_fow_blocker_node image'
+print('generating ent_fow_blocker_node image')
 generate_ent_fow_blocker_node_image(["data/dota_pvp_prefab.vmap.txt", "data/dota_custom_default_000.vmap.txt"], "img/ent_fow_blocker_node.png")
-print 'generating tree_elevation image'
+print('generating tree_elevation image')
 generate_tree_elevation_image("data/mapdata.json", "img/tree_elevation.png")
-print 'parsing dota_pvp_prefab'
+print('parsing dota_pvp_prefab')
 parse_tools_no_wards_prefab("data/dota_pvp_prefab.vmap.txt", "data/tools_no_wards.txt")
-print 'generating tools_no_wards data'
+print('generating tools_no_wards data')
 generate_tools_no_wards_data("keyvalues2.js", "data/tools_no_wards.txt", "data/tools_no_wards.json")
-print 'generating tools_no_wards image'
+print('generating tools_no_wards image')
 im = generate_tools_no_wards_image("data/tools_no_wards.json", "img/tools_no_wards.png")
 # add tools_no_wards from tiles to image
-print 'parsing dire_basic prefab'
+print('parsing dire_basic prefab')
 parse_tools_no_wards_prefab("data/dire_basic.vmap.txt", "data/dire_basic_tools_no_wards.txt")
-print 'adding tile data to tools_no_wards image'
+print('adding tile data to tools_no_wards image')
 generate_tools_no_wards_image_from_tile_data("keyvalues2.js", "data/dire_basic_tools_no_wards.txt", "img/tools_no_wards.png", im)
-print 'stitching final image'
+print('stitching final image')
 stitch_images(["img/elevation.png", "img/tree_elevation.png", "img/gridnav.png", "img/ent_fow_blocker_node.png", "img/tools_no_wards.png"], "img/map_data.png")
-print 'done'
+print('done')
