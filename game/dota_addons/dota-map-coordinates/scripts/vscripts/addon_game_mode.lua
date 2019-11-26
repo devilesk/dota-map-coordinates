@@ -120,7 +120,7 @@ function DumpCoordinateData(keys, schema, out)
                 end
                 if ent.GetPhysicalArmorValue then
                     --print (ent:GetPhysicalArmorValue())
-                    b1.armor = ent:GetPhysicalArmorValue()
+                    b1.armor = ent:GetPhysicalArmorValue(false)
                 end
                 if ent.GetTeamNumber then
                     ---print (ent:GetTeamNumber())
