@@ -168,7 +168,8 @@ function GenerateMapData(out)
             "npc_dota_filler",
             "npc_dota_fort",
             "npc_dota_tower",
-            "npc_dota_neutral_spawner"
+            "npc_dota_neutral_spawner",
+            "npc_dota_watch_tower"
         },
         {
             dota_item_rune_spawner_powerup = "dota_item_rune_spawner",

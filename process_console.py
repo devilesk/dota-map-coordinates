@@ -9,7 +9,7 @@ def all_int(l):
     except:
         return False
 
-with open('data/722_data.log', 'r') as f:
+with open('data/723_data.log', 'r') as f:
     lines = f.readlines()
     started = False
     next_filename = False
